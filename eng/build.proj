@@ -6,7 +6,7 @@
     <ProjectReference Include="../**/*.*proj" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(TEST_BUCKET) <> ''">
+  <ItemGroup Condition="$(TEST_BUCKET) != ''">
     <ProjectReference Include="../tests/ArgumentsPrinter/ArgumentsPrinter.csproj" />
   </ItemGroup>
 
