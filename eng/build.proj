@@ -6,6 +6,10 @@
     <ProjectReference Include="../**/*.*proj" />
   </ItemGroup>
 
+  <ItemGroup Condition="$(TEST_BUCKET) <> ''">
+    <ProjectReference Include="../tests/ArgumentsPrinter/ArgumentsPrinter.csproj" />
+  </ItemGroup>
+
   <ItemGroup Condition="$([MSBuild]::IsOsPlatform('WINDOWS')) == false">
     <ProjectReference Remove="../src/Meziantou.Framework.WPF/Meziantou.Framework.WPF.csproj" />
     <ProjectReference Remove="../tests/Meziantou.Framework.WPF.Tests/Meziantou.Framework.WPF.Tests.csproj" />
