@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace ParallelizeTests
@@ -30,12 +31,13 @@ namespace ParallelizeTests
                     new XAttribute("Condition", $"$(TEST_BUCKET) == '{bucketStr}'")));
             }
 
-            var str = newContent.ToString(SaveOptions.None);
+            var str = newContent.ToString(SaveOptions.None).Replace("\r\n", "\n", StringComparison.Ordinal);
 
             var path = Path.Combine(rootFolder, "eng", "build-test-parallel.props");
-            if (str != File.ReadAllText(path))
+            var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+            if (str != File.ReadAllText(path, encoding))
             {
-                File.WriteAllText(path, str);
+                File.WriteAllText(path, str, encoding);
                 return 1;
             }
 
