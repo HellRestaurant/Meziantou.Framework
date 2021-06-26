@@ -45,6 +45,8 @@ jobs:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
+    - name: Setup .NET Core (global.json)
+      uses: actions/setup-dotnet@v1
     - name: Validate CI
       run: .\eng\update-ci.ps1
 
@@ -105,7 +107,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '3.1.x'
-    - run: dotnet test eng/build.proj --configuration ${{ matrix.configuration }} /p:UseSourceLink=false /p:TEST_BUCKET=${{ matrix.testBucket }} --logger trx --logger "GitHubActions;report-warnings=false" --results-directory "${{ env.TestResultsDirectory }}" --collect:"XPlat Code Coverage" --blame-hang --blame-hang-timeout 2min /bl
+    - run: dotnet test eng/build.proj --configuration ${{ matrix.configuration }} /p:UseSourceLink=false /p:TEST_BUCKET=${{ matrix.testBucket }} --logger trx --logger "GitHubActions" --results-directory "${{ env.TestResultsDirectory }}" --collect:"XPlat Code Coverage" --blame-hang --blame-hang-timeout 2min /bl
       name: Run tests
     - uses: actions/upload-artifact@v2
       if: always()
