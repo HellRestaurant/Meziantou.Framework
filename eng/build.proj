@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.Build.Traversal">
-  <ItemGroup>
+
+  <Import Project="build-test-parallel.props" />
+
+  <ItemGroup Condition="$(TEST_BUCKET) == ''">
     <ProjectReference Include="../**/*.*proj" />
   </ItemGroup>
 
