@@ -107,7 +107,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '3.1.x'
-    - run: dotnet test eng/build.proj --configuration ${{ matrix.configuration }} /p:UseSourceLink=false /p:TEST_BUCKET=${{ matrix.testBucket }} --logger trx --logger "GitHubActions" --results-directory "${{ env.TestResultsDirectory }}" --collect:"XPlat Code Coverage" --blame-hang --blame-hang-timeout 2min /bl
+    - run: dotnet build eng/build.proj --configuration ${{ matrix.configuration }} /p:UseSourceLink=false /p:TEST_BUCKET=${{ matrix.testBucket }} /bl
+      name: Build projects
+    - run: dotnet test eng/build.proj --configuration ${{ matrix.configuration }} /p:UseSourceLink=false /p:TEST_BUCKET=${{ matrix.testBucket }} --no-build --logger trx --logger "GitHubActions" --results-directory "${{ env.TestResultsDirectory }}" --collect:"XPlat Code Coverage" --blame-hang --blame-hang-timeout 2min /bl
       name: Run tests
     - uses: actions/upload-artifact@v2
       if: always()

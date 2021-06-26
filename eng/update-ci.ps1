@@ -1,5 +1,5 @@
 $ProjectPath = Join-Path $PSScriptRoot "ParallelizeTests" "ParallelizeTests.csproj" -Resolve
-$TestsRootPath = Join-Path $PSScriptRoot ".." -Resolve
+$ProjectRootPath = Join-Path $PSScriptRoot ".." -Resolve
 
-dotnet run $ProjectPath -- "$TestsRootPath"
+dotnet run --project $ProjectPath -- "$ProjectRootPath"
 exit $LASTEXITCODE
