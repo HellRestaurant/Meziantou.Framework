@@ -4,6 +4,7 @@
   <PropertyGroup>
     <IsPackable>True</IsPackable>
     <Nullable>enable</Nullable>
+    <SkipLocalsInit>true</SkipLocalsInit>
   </PropertyGroup>
 
 </Project>

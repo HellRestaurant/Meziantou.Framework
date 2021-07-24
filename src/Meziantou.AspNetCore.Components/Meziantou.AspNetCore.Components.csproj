@@ -1,17 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Version>1.0.6</Version>
+    <ValidateProjectTargets>false</ValidateProjectTargets>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <Version>1.0.9</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Remove="wwwroot/**/*.ts" />
+    <None Include="wwwroot/**/*.ts" />
+  </ItemGroup>
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="5.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="5.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.8" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.3.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

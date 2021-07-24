@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Meziantou.Framework.DependencyScanning.Scanners;
+using Meziantou.Framework.Globbing;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,7 +42,7 @@ namespace Meziantou.Framework.DependencyScanning.Tests
             }
 
             _testOutputHelper.WriteLine("File scanned in " + stopwatch.GetElapsedTime());
-            Assert.Equal(FileCount, items.Count);
+            items.Should().HaveCount(FileCount);
         }
 
         [Fact]
@@ -63,7 +66,7 @@ namespace Meziantou.Framework.DependencyScanning.Tests
             }
 
             _testOutputHelper.WriteLine("File scanned in " + stopwatch.GetElapsedTime());
-            Assert.Empty(items);
+            items.Should().BeEmpty();
         }
 
         [Theory]
@@ -74,38 +77,34 @@ namespace Meziantou.Framework.DependencyScanning.Tests
             await using var directory = TemporaryDirectory.Create();
             await File.WriteAllTextAsync(directory.GetFullPath($"text.txt"), "");
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            {
-                await DependencyScanner.ScanDirectoryAsync(directory.FullPath, new ScannerOptions { DegreeOfParallelism = degreeOfParallelism, Scanners = new[] { new ShouldScanThrowScanner() } }, _ => ValueTask.CompletedTask);
-            });
+            await new Func<Task>(() => DependencyScanner.ScanDirectoryAsync(directory.FullPath, new ScannerOptions { DegreeOfParallelism = degreeOfParallelism, Scanners = new[] { new ShouldScanThrowScanner() } }, _ => ValueTask.CompletedTask))
+                .Should().ThrowExactlyAsync<InvalidOperationException>();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            {
-                await DependencyScanner.ScanDirectoryAsync(directory.FullPath, new ScannerOptions { DegreeOfParallelism = degreeOfParallelism, Scanners = new[] { new ScanThrowScanner() } }, _ => ValueTask.CompletedTask);
-            });
+            await new Func<Task>(() => DependencyScanner.ScanDirectoryAsync(directory.FullPath, new ScannerOptions { DegreeOfParallelism = degreeOfParallelism, Scanners = new[] { new ScanThrowScanner() } }, _ => ValueTask.CompletedTask))
+                .Should().ThrowExactlyAsync<InvalidOperationException>();
         }
 
         [Theory]
         [InlineData(1)]
         [InlineData(2)]
-        public async Task ReportScanException_IAsyncEnumerablt(int degreeOfParallelism)
+        public async Task ReportScanException_IAsyncEnumerable(int degreeOfParallelism)
         {
             await using var directory = TemporaryDirectory.Create();
             await File.WriteAllTextAsync(directory.GetFullPath($"text.txt"), "");
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await new Func<Task>(async () =>
             {
                 await foreach (var item in DependencyScanner.ScanDirectoryAsync(directory.FullPath, new ScannerOptions { DegreeOfParallelism = degreeOfParallelism, Scanners = new[] { new ShouldScanThrowScanner() } }))
                 {
                 }
-            });
+            }).Should().ThrowExactlyAsync<InvalidOperationException>();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await new Func<Task>(async () =>
             {
                 await foreach (var item in DependencyScanner.ScanDirectoryAsync(directory.FullPath, new ScannerOptions { DegreeOfParallelism = degreeOfParallelism, Scanners = new[] { new ScanThrowScanner() } }))
                 {
                 }
-            });
+            }).Should().ThrowExactlyAsync<InvalidOperationException>();
         }
 
         [Fact]
@@ -118,8 +117,31 @@ namespace Meziantou.Framework.DependencyScanning.Tests
                 .OrderBy(t => t.FullName)
                 .ToArray();
 
-            Assert.NotEmpty(scanners);
-            Assert.Equal(allScanners, scanners);
+            scanners.Should().NotBeEmpty();
+            scanners.Should().BeEquivalentTo(allScanners);
+        }
+
+        [Fact]
+        public async Task UsingGlobs()
+        {
+            await using var directory = TemporaryDirectory.Create();
+            var file1 = directory.CreateEmptyFile($"packages.json");
+            var file2 = directory.CreateEmptyFile($"node_modules/packages.json");
+
+            var globs = new GlobCollection(Glob.Parse("**/*", GlobOptions.None), Glob.Parse("!**/node_modules/**/*", GlobOptions.None));
+            var options = new ScannerOptions()
+            {
+                RecurseSubdirectories = true,
+                ShouldScanFilePredicate = (ref FileSystemEntry entry) => globs.IsMatch(ref entry),
+                ShouldRecursePredicate = (ref FileSystemEntry entry) => globs.IsPartialMatch(ref entry),
+                Scanners = new DependencyScanner[]
+                {
+                    new DummyScanner(),
+                },
+            };
+            var result = await DependencyScanner.ScanDirectoryAsync(directory.FullPath, options).ToListAsync();
+
+            result.Should().SatisfyRespectively(dep => dep.Location.FilePath.Should().Be(file1));
         }
 
         private sealed class DummyScanner : DependencyScanner
@@ -161,6 +183,5 @@ namespace Meziantou.Framework.DependencyScanning.Tests
 
             protected override bool ShouldScanFileCore(CandidateFileContext file) => throw new InvalidOperationException();
         }
-
     }
 }

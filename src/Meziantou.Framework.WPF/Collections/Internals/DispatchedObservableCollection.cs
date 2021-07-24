@@ -27,7 +27,8 @@ namespace Meziantou.Framework.WPF.Collections
         {
             if (!IsOnDispatcherThread())
             {
-                throw new InvalidOperationException("The collection must be accessed from the dispatcher thread only. Current thread ID: " + Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture));
+                var currentThreadId = Environment.CurrentManagedThreadId;
+                throw new InvalidOperationException("The collection must be accessed from the dispatcher thread only. Current thread ID: " + currentThreadId.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -174,6 +175,11 @@ namespace Meziantou.Framework.WPF.Collections
             EnqueueEvent(PendingEvent.Replace(index, value));
         }
 
+        internal void EnqueueReset(System.Collections.Immutable.ImmutableList<T> items)
+        {
+            EnqueueEvent(PendingEvent.Reset(items));
+        }
+
         internal void EnqueueAdd(T item)
         {
             EnqueueEvent(PendingEvent.Add(item));
@@ -251,6 +257,10 @@ namespace Meziantou.Framework.WPF.Collections
 
                     case PendingEventType.Replace:
                         ReplaceItem(pendingEvent.Index, pendingEvent.Item);
+                        break;
+
+                    case PendingEventType.Reset:
+                        Reset(pendingEvent.Items);
                         break;
                 }
             }

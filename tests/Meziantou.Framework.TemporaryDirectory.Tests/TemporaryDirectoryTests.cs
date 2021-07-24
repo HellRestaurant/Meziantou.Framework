@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 
 namespace Meziantou.Framework.Tests
@@ -21,11 +22,11 @@ namespace Meziantou.Framework.Tests
 
             try
             {
-                Assert.Equal(Iterations, dirs.DistinctBy(dir => dir.FullPath).Count());
+                dirs.DistinctBy(dir => dir.FullPath).Should().HaveCount(Iterations);
 
                 foreach (var dir in dirs)
                 {
-                    Assert.All(dirs, dir => Assert.True(Directory.Exists(dir.FullPath)));
+                    dirs.Should().OnlyContain(dir => Directory.Exists(dir.FullPath));
                 }
             }
             finally
@@ -47,7 +48,7 @@ namespace Meziantou.Framework.Tests
                 File.WriteAllText(dir.GetFullPath("a.txt"), "content");
             }
 
-            Assert.False(Directory.Exists(path));
+            Directory.Exists(path).Should().BeFalse();
         }
 
         [Fact]
@@ -60,14 +61,14 @@ namespace Meziantou.Framework.Tests
 
 #if NET461 || NET472
                 File.WriteAllText(dir.GetFullPath("a.txt"), "content");
-#elif NETCOREAPP3_1 || NET5_0
+#elif NETCOREAPP3_1 || NET5_0 || NET6_0
                 await File.WriteAllTextAsync(dir.GetFullPath("a.txt"), "content");
 #else
 #error Platform not supported
 #endif
             }
 
-            Assert.False(Directory.Exists(path));
+            Directory.Exists(path).Should().BeFalse();
         }
     }
 }

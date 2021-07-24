@@ -1,43 +1,32 @@
-<Project>
+﻿<Project>
 
   <!-- Build options -->
   <PropertyGroup>
-    <_ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true' or '$(GITHUB_ACTIONS)' == 'true' or '$(GITLAB_CI)' == 'true'">True</_ContinuousIntegrationBuild>
-    
     <LangVersion>9.0</LangVersion>
     <TreatWarningsAsErrors Condition="'$(Configuration)' != 'Debug'">true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
-    <LatestTargetFramework>net5.0</LatestTargetFramework>
+    <LatestTargetFramework>net6.0</LatestTargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SkipLocalsInit>true</SkipLocalsInit>
-    
+    <ValidateProjectTargets>true</ValidateProjectTargets>
+
     <Features>strict</Features>
     <AnalysisLevel>latest</AnalysisLevel>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-
     <ReportAnalyzer>true</ReportAnalyzer>
 
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
-    <RestoreSources>https://api.nuget.org/v3/index.json</RestoreSources>
-    <!--<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <RestoreLockedMode Condition="'$(_ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>-->
     <IsPackable>False</IsPackable>
   </PropertyGroup>
 
   <!-- disable the nullable warnings when compiling for target that haven't annotation -->
   <PropertyGroup Condition="'$(TargetFramework)' != '$(LatestTargetFramework)'">
-    <NoWarn>$(NoWarn);8600;8601;8602;8603;8604</NoWarn>
+    <NoWarn>$(NoWarn);nullable</NoWarn>
   </PropertyGroup>
 
   <!-- Analyzers -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-
-    <PackageReference Include="Meziantou.Analyzer" Version="1.0.647">
+    <PackageReference Include="Meziantou.Analyzer" Version="1.0.667">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime;build;native;contentfiles;analyzers;buildtransitive</IncludeAssets>
     </PackageReference>
@@ -45,31 +34,31 @@
 
   <!-- Package configuration -->
   <PropertyGroup>
+    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\readme.md')">$(MSBuildProjectDirectory)\readme.md</_PackageReadmeFilePath>
+
     <Authors>Meziantou</Authors>
     <Company>Meziantou</Company>
     <PackageProjectUrl>https://github.com/meziantou/Meziantou.Framework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/meziantou/Meziantou.Framework.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-
-    <!-- https://github.com/NuGet/Home/wiki/Packaging-License-within-the-nupkg -->
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile Condition="$(_PackageReadmeFilePath) != ''">readme.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <!-- SourceLink: https://www.meziantou.net/2018/07/09/how-to-debug-nuget-packages-using-sourcelink -->
-  <Choose>
-    <When Condition="$(UseSourceLink) != 'false'">
-      <PropertyGroup>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">$(_ContinuousIntegrationBuild)</ContinuousIntegrationBuild>
-      </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)\LICENSE.txt" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="" Condition="$(_PackageReadmeFilePath) != ''" />
+  </ItemGroup>
 
-      <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
-        <SourceRoot Include="$(MSBuildThisFileDirectory)/"/>
-      </ItemGroup>
-    </When>
-  </Choose>
+  <!-- SourceLink and Reproducible Builds: https://www.meziantou.net/2018/07/09/how-to-debug-nuget-packages-using-sourcelink -->
+  <ItemGroup>
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
+
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="0.1.64">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>

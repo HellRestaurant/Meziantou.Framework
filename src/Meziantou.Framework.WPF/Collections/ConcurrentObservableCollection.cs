@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -52,13 +53,13 @@ namespace Meziantou.Framework.WPF.Collections
             }
         }
 
-        bool ICollection<T>.IsReadOnly => ((ICollection<T>)_items).IsReadOnly;
+        bool ICollection<T>.IsReadOnly => false;
 
         public int Count => _items.Count;
 
-        bool IList.IsReadOnly => ((IList)_items).IsReadOnly;
+        bool IList.IsReadOnly => false;
 
-        bool IList.IsFixedSize => ((IList)_items).IsFixedSize;
+        bool IList.IsFixedSize => false;
 
         int ICollection.Count => Count;
 
@@ -167,6 +168,34 @@ namespace Meziantou.Framework.WPF.Collections
         public void CopyTo(T[] array, int arrayIndex)
         {
             _items.CopyTo(array, arrayIndex);
+        }
+
+        public void Sort()
+        {
+            Sort(comparer: null);
+        }
+
+        public void Sort(IComparer<T>? comparer)
+        {
+            lock (_lock)
+            {
+                _items = _items.Sort(comparer);
+                _observableCollection?.EnqueueReset(_items);
+            }
+        }
+
+        public void StableSort()
+        {
+            StableSort(comparer: null);
+        }
+
+        public void StableSort(IComparer<T>? comparer)
+        {
+            lock (_lock)
+            {
+                _items = ImmutableList.CreateRange(_items.OrderBy(item => item, comparer));
+                _observableCollection?.EnqueueReset(_items);
+            }
         }
 
         int IList.Add(object? value)

@@ -28,7 +28,12 @@ namespace Meziantou.Framework
 
         public static TemporaryDirectory Create()
         {
-            var (path, innerPath, lockFile) = CreateUniqueDirectory(FullPath.Combine(Path.GetTempPath(), "TD", DateTime.UtcNow.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture)));
+            return Create(FullPath.Combine(Path.GetTempPath(), "MezTD"));
+        }
+
+        public static TemporaryDirectory Create(FullPath rootDirectory)
+        {
+            var (path, innerPath, lockFile) = CreateUniqueDirectory(rootDirectory / DateTime.UtcNow.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture));
             return new TemporaryDirectory(path, innerPath, lockFile);
         }
 
@@ -128,7 +133,7 @@ namespace Meziantou.Framework
             await IOUtilities.DeleteAsync(new DirectoryInfo(FullPath), CancellationToken.None).ConfigureAwait(false);
 
             // Release the lock file and delete the parent directory
-#if NET5_0 || NETCOREAPP3_1
+#if NETCOREAPP3_1 || NET5_0 || NET6_0
             await _lockFile.DisposeAsync().ConfigureAwait(false);
 #elif NETSTANDARD2_0 || NET472
             _lockFile.Dispose();

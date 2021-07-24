@@ -101,7 +101,7 @@ namespace Meziantou.AspNetCore.Components
 
         public Type PropertyType => Property.PropertyType;
 
-        public object Value
+        public object? Value
         {
             get => Property.GetValue(Owner);
             set

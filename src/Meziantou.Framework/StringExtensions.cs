@@ -6,7 +6,6 @@ using System.Text;
 
 namespace Meziantou.Framework
 {
-
 #if PUBLIC_STRING_EXTENSIONS
     public
 #else
@@ -44,15 +43,21 @@ namespace Meziantou.Framework
         }
 
         [Pure]
-        public static bool ContainsIgnoreCase(this string str, string value)
+        public static bool Contains(this string str, string value, StringComparison stringComparison)
         {
 #if NETSTANDARD2_0
-            return str.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
-#elif NET5_0
-            return str.Contains(value, StringComparison.OrdinalIgnoreCase);
+            return str.IndexOf(value, stringComparison) >= 0;
+#elif NET5_0 || NET6_0
+            return str.Contains(value, stringComparison);
 #else
 #error Platform not supported
 #endif
+        }
+
+        [Pure]
+        public static bool ContainsIgnoreCase(this string str, string value)
+        {
+            return str.Contains(value, StringComparison.OrdinalIgnoreCase);
         }
 
         [Pure]

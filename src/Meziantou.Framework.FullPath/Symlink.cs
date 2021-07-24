@@ -19,7 +19,7 @@ namespace Meziantou.Framework
             }
             else
             {
-#if NETCOREAPP3_1 || NET5_0
+#if NETCOREAPP3_1 || NET5_0 || NET6_0
                 return UnixSymlink.IsSymbolicLink(path);
 #elif NET472
                 throw new PlatformNotSupportedException();
@@ -37,7 +37,7 @@ namespace Meziantou.Framework
             }
             else
             {
-#if NETCOREAPP3_1 || NET5_0
+#if NETCOREAPP3_1 || NET5_0 || NET6_0
                 return UnixSymlink.TryGetSymLinkTarget(path, out target);
 #elif NET472
                 throw new PlatformNotSupportedException();
@@ -49,7 +49,7 @@ namespace Meziantou.Framework
 
         private static bool IsWindows()
         {
-#if NET5_0
+#if NET5_0 || NET6_0
             return OperatingSystem.IsWindows();
 #elif NETCOREAPP3_1 || NETSTANDARD2_0
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -60,7 +60,7 @@ namespace Meziantou.Framework
 #endif
         }
 
-#if NETCOREAPP3_1 || NET5_0
+#if NETCOREAPP3_1 || NET5_0 || NET6_0
         private static class UnixSymlink
         {
             internal static bool TryGetSymLinkTarget(string path, [NotNullWhen(true)] out string? target)
@@ -175,7 +175,7 @@ namespace Meziantou.Framework
                             // got entire payload with valid header.
 #if NETSTANDARD2_0 || NET472
                             var target = Encoding.Unicode.GetString(validBuffer.Slice(sizeHeader + header.SubstituteNameOffset, header.SubstituteNameLength).ToArray());
-#elif NETCOREAPP3_1 || NET5_0
+#elif NETCOREAPP3_1 || NET5_0 || NET6_0
                             var target = Encoding.Unicode.GetString(validBuffer.Slice(sizeHeader + header.SubstituteNameOffset, header.SubstituteNameLength));
 #else
 #error Platform not supported
@@ -187,11 +187,23 @@ namespace Meziantou.Framework
                                     var rootPath = Path.GetDirectoryName(path[4..]);
                                     if (rootPath != null)
                                     {
+#if NETSTANDARD2_0 || NET472
                                         target = path.Substring(0, 4) + Path.GetFullPath(Path.Combine(rootPath, target));
+#elif NETCOREAPP3_1 || NET5_0 || NET6_0
+                                        target = string.Concat(path.AsSpan(0, 4), Path.GetFullPath(Path.Combine(rootPath, target)));
+#else
+#error Platform not supported
+#endif
                                     }
                                     else
                                     {
+#if NETSTANDARD2_0 || NET472
                                         target = path.Substring(0, 4) + Path.GetFullPath(target);
+#elif NETCOREAPP3_1 || NET5_0 || NET6_0
+                                        target = string.Concat(path.AsSpan(0, 4), Path.GetFullPath(target));
+#else
+#error Platform not supported
+#endif
                                     }
                                 }
                                 else
